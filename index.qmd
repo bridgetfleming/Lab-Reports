@@ -1,0 +1,25 @@
+---
+title: "Lab 3s Assignment"
+author: "Bridget Fleming"
+format:
+  html:
+    toc: true
+    toc_float: true
+    embed-resources: true
+editor: visual
+execute: 
+  warning: false
+  message: false
+---
+
+## About Me
+
+I am a junior biology major at UMASS Amherst. I hope to eventually apply my interest in biology to contribute to biomedical research.
+
+[Biology Department](https://www.umass.edu/biology/)
+
+[lab 2](https://ood.unity.rc.umass.edu/rnode/ceewater-cpu007.unity.rc.umass.edu/43862/files/Lab%202.html)
+
+![Fall Tree](https://ood.unity.rc.umass.edu/rnode/ceewater-cpu002.unity.rc.umass.edu/32742/files/Images/fall%20tree%20image.jpeg)
+
+*image from: iStock Photo.com*
