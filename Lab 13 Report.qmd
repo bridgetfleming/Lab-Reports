@@ -1,0 +1,13 @@
+---
+title: "Lab 13 Report"
+author: "Bridget Fleming"
+format:
+  html:
+    toc: true
+    toc_float: true
+    embed-resources: true
+editor: visual
+execute: 
+  warning: false
+  message: false
+---
