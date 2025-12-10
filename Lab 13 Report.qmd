@@ -12,7 +12,17 @@ execute:
   message: false
 ---
 
+```{r}
+library(dplyr)
 
+```
+
+
+
+```{r}
+#| results: "hide"
+NEON_soilMAGs_soilChem <- read.csv("NEON_soilMAGs_soilChem.csv")
+```
 
 
 Step 0: I provided the entire dataset to Co-pilot, and I said that I wanted to look into Communtiy interactions / co-occurence / network analysis.
@@ -101,9 +111,16 @@ NEON_soilMAGs_soilChem %>%
 
 ```
 
-On a map:
+```{r}
+library(tidyverse)
 
-Then, I wanted to see where certain dominant species are located within the U.S.
+dominant_species_by_site <- NEON_soilMAGs_soilChem %>%
+  group_by(site, decimalLatitude, decimalLongitude, bin_lineage) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(site) %>%
+  slice_max(order_by = count, n = 1)  # keep only the dominant taxon per site
+print(dominant_species_by_site)
+```
 
 ```{r}
 library(ggplot2)
@@ -127,6 +144,16 @@ ggplot() +
 
 ```
 
+
+```{r}
+dominant_species_tRNA <- dominant_species_by_site %>%
+  left_join(NEON_soilMAGs_soilChem %>%
+              select(decimalLongitude, decimalLatitude, bin_lineage, t_rna_genes),
+            by = c("decimalLongitude", "decimalLatitude", "bin_lineage"))
+print(dominant_species_tRNA)
+```
+
+
 connecting tRNA with soil chemistry values (suggested by copilot)
 
 Then, I wanted to associate tRNA with soil chemistry values. Co-pilot suggested this, and I thought that this would be a great connection to make, for tRNA provides insight into the amount of genes being expressed by the species. It would be interesting to see if certain aspects of the soil chemistry affected this. With further exploration (like somehow to look into what genes these tRNAs were translating to) it could provide insight into how the soil influences species composition.
@@ -139,8 +166,18 @@ dominant_species_tRNA <- dominant_species_by_site %>%
   left_join(NEON_soilMAGs_soilChem_unique %>%
               select(site, bin_lineage, t_rna_genes),
             by = c("site", "bin_lineage"))
-print(NEON_soilMAGs_soilChem_unique)
 ```
+
+
+```{r}
+dominant_species_env <- dominant_species_by_site %>%
+  left_join(NEON_soilMAGs_soilChem_unique %>%
+              select(site, bin_lineage, t_rna_genes,
+                     soilMoisture, soilTemp, soilInWaterpH, soilInCaClpH),
+            by = c("site", "bin_lineage"))
+print (dominant_species_env)
+```
+
 
 This summarizes the data from above to connect the average tRNA and environemntal properties for the priamry bin_lineages.
 
@@ -195,6 +232,28 @@ print (species_env_summary)
 ```
 
 This code ran another correlation test to determine the association of tRNA with other features of the soil. The results of this test are displayed below. Interestingly, it appears that the specific correlations are relatively low with the highest correlation between tRNA displayed with soil temperature. The p value is greatest with the average moisture. Although I am sure that I learned this in stats, I needed to refresh my memory on the difference between the correlation value and the p-value. According to this article, https://dataschool.com/fundamentals-of-analysis/correlation-and-p-value/, the key difference is the correlation value indicates if there is a relationship and if this is a positive or negative relationship, while the p - value is what determines if it is actually statistically significant. To be considered statistically significant, one would need a p value that is less than 0.05. That is not the case here, so the correlation between these features is simply a coincidence.  
+
+```{r}
+run_corr <- function(df, x, yvars) {
+  results <- lapply(yvars, function(y) {
+    xvec <- df[[x]]
+    yvec <- df[[y]]
+    
+    # Only run if at least 2 finite values
+    if(sum(is.finite(xvec) & is.finite(yvec)) >= 2) {
+      test <- cor.test(xvec, yvec, method = "spearman", use = "complete.obs")
+      data.frame(
+        variable = y,
+        correlation = test$estimate,
+        p_value = test$p.value
+      )
+    } else {
+      data.frame(variable = y, correlation = NA, p_value = NA)
+    }
+  })
+  do.call(rbind, results)
+}
+```
 
 ```{r}
 soil_vars <- c("avg_moisture", "avg_temp", "avg_pH_water", "avg_pH_CaCl")
